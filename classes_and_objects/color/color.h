@@ -10,6 +10,8 @@ public:
     int getG() const { return mG; }
     int getB() const { return mB; }
 
+    static Color random();
+
 private:
     int mR, mG, mB;
 

@@ -88,6 +88,6 @@ void Rect::draw() {
     sdlDrawRect(mX, mY, mHB, mHH, mRGB.getR(), mRGB.getG(), mRGB.getB());
 }
 
-void Rect::undraw() {
+void Rect::undraw() const {
     sdlDrawRect(mX, mY, mHB, mHH, 0, 0, 0);
 }

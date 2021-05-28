@@ -15,74 +15,106 @@
 #include "include/sdlinterf.h"
 #include "rect/Rect.h"
 
+#define MAX_RECTS 30
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
 // damit wir die Funktionen aus <cstdlib> ohne std::... aufrufen können
 using namespace std;
 
-int randPM(int n);
-void flyAndTriggerBounceOf(Rect &rect);
+int randPM(int n, bool negatives = true);
+void flyAndTriggerBounceOf(Rect &rect, Rect *rects[], int currentRectIndex, int *livingObjects, bool destroyRect = false);
 
-int main(void) {
+int main() {
     srand(time(nullptr));
     sdlInit();  // Grafik-Fenster aufmachen
 
-  // Hier braucht man eigene { } um die Punkt-Variablen,
-  // damit die Punkt-Objekte am Ende der { }
-  // wieder automatisch freigegeben werden,
-  // *bevor* die SDL mit sdlExit abgedreht wird
-  // (sonst würde der Destruktor des Punktes p am Programmende versuchen,
-  // den Punkt mit undraw() zu löschen, obwohl das Grafik-Fenster schon weg ist
-  // ==> Absturz!)
-  { 
-    // In der folgenden Zeile stecken gleich 2 Konstruktor-Aufrufe:
-    // * Zuerst wird mit Color(...) ein Objekt der Klasse Color angelegt.
-    //   Es ist anonym (kein Name, keine eigene Variable)
-    //   und temporär (wird als Parameter an den Rect-Konstruktor übergeben
-    //   und verschwindet dann gleich wieder).
-    // * Dann wird eine neue Variable p angelegt,
-    //   die ein Objekt der Klasse Rect enthält,
-    //   Dieser Punkt p wird durch den Aufruf des Konstruktors
-    //   auf "weiß" und "Fenster-Mitte" initialisiert.
+    Rect *rects[MAX_RECTS];
 
-    Rect p(Color(255, 255, 255), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 5, 5, 3, 2);
-    Rect p2(Color(255, 200, 100), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 10, 10, 5, 5);
+    /*
+     * Hier braucht man eigene { } um die Punkt-Variablen,
+     * damit die Punkt-Objekte am Ende der { }
+     * wieder automatisch freigegeben werden,
+     * *bevor* die SDL mit sdlExit abgedreht wird
+     * (sonst würde der Destruktor des Punktes p am Programmende versuchen,
+     * den Punkt mit undraw() zu löschen, obwohl das Grafik-Fenster schon weg ist
+     * ==> Absturz!)
+     */
+    {
+        for(auto &rect : rects) {
+            rect = new Rect(Color::random(), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, randPM(30, false), randPM(30, false), randPM(10), randPM(10));
+        }
 
-    for (;;) {
-      sdlMilliSleep(20);   // "Bremse"
+        // This is short for:
+        // for(int i = 0; i < MAX_RECTS; ++i) {
+        //     rects[i] = new Rect(Color::random(), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 5, 5, 3, 2);
+        // }
 
-      flyAndTriggerBounceOf(p);
-      flyAndTriggerBounceOf(p2);
+        // Solange noch Objekte vorhanden sind
+        for(int n = MAX_RECTS; n > 0; ) {
+            sdlMilliSleep(16);
 
-      sdlUpdate();    // die von fly intern ausgeführten Grafik-Operationen
-                      // wirklich auf dem Bildschirm anzeigen
-    } 
-  }
+            for(int i = 0; i < n; ++i) {
+                if(rects[i] != nullptr) {
+                    flyAndTriggerBounceOf(*rects[i], rects, i, &n, true);
+                }
+            }
 
-  sdlExit();  // Grafik-Fenster zumachen
+            sdlUpdate();
+        }
 
-  exit(EXIT_SUCCESS);
+        /*Rect p(Color(255, 255, 255), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 5, 5, 3, 2);
+        Rect p2(Color(255, 200, 100), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 10, 10, 5, 5);
+        Rect p3(Color(255, 20, 200), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 2, 3, -6, -6);
+        Rect p4(Color(255, 110, 100), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 6, 6, 3, 3);
+        Rect p5(Color(255, 230, 140), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 8, 12, -3, -4);*/
+
+        /*for (;;) {
+          sdlMilliSleep(16);
+
+          flyAndTriggerBounceOf(p);
+          flyAndTriggerBounceOf(p2);
+          flyAndTriggerBounceOf(p3);
+          flyAndTriggerBounceOf(p4);
+          flyAndTriggerBounceOf(p5);
+
+          sdlUpdate();    // die von fly intern ausgeführten Grafik-Operationen
+                          // wirklich auf dem Bildschirm anzeigen
+        }*/
+    }
+
+    sdlExit();
+    exit(EXIT_SUCCESS);
 }
 
 /**
  * Let the rect fly and bounce of the walls
  * @param rect
  */
-void flyAndTriggerBounceOf(Rect &rect) {
+void flyAndTriggerBounceOf(Rect &rect, Rect *rects[], int currentRectIndex, int *livingObjects, bool destroyRect) {
     bool didBounceOf = !rect.fly(true);
 
     if(didBounceOf) {
         rect.scale(90, 90);
 
         if(rect.getHH() == 0 || rect.getHB() == 0) {
-            rect.setPos(SDL_X_SIZE / 2, SDL_Y_SIZE / 2);
-            rect.setSpeed(randPM(10), randPM(10));
-            rect.setSize(rand() % 30 + 1, rand() % 30 + 1);
+            if(destroyRect) {
+                
+                delete rects[currentRectIndex];
+                rects[currentRectIndex] = nullptr;
+                --(*livingObjects);
 
-            // Set random color is optional
-            rect.setColor(Color(rand() % 255 + 10, rand() % 255 + 10, rand() % 255 + 10));
+            } else {
+                rect.setPos(SDL_X_SIZE / 2, SDL_Y_SIZE / 2);
+                rect.setSpeed(randPM(10), randPM(10));
+                rect.setSize(randPM(30, false), randPM(30, false));
+
+                // Set random color is optional
+                rect.setColor(Color::random());
+            }
         }
+
     }
 }
 
@@ -91,11 +123,15 @@ void flyAndTriggerBounceOf(Rect &rect) {
  * @param n
  * @return int
  */
-int randPM(int n) {
-    int rnd = 0;
+int randPM(int n, bool negatives) {
+    int rnd;
 
     do {
-        rnd = (rand() % (n*2)) - n;
+        if(negatives) {
+            rnd = (rand() % (n*2)) - n;
+        } else {
+            rnd = (rand() % (n) + 1);
+        }
     } while (rnd == 0);
 
     return rnd;

@@ -5,7 +5,7 @@
 #ifndef POINT_RECT_H
 #define POINT_RECT_H
 
-#include "../color.h"
+#include "../color/color.h"
 
 class Rect {
 
@@ -25,7 +25,7 @@ public:
 
     void move(int dx, int dy);
     void draw();
-    void undraw();
+    void undraw() const;
 
     void setSize(int hB, int hH);
     void setSpeed(int sx, int sy);

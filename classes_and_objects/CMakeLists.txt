@@ -10,7 +10,7 @@ link_libraries("-static -lmingw32
 -lversion -luuid -static-libgcc -lhid -lsetupapi -static-libstdc++")
 
 # Add sdlinterf.c to executable
-add_executable(${PROJECT_NAME} main.cpp include/sdlinterf.c color.h rect/Rect.cpp rect/Rect.h)
+add_executable(${PROJECT_NAME} main.cpp include/sdlinterf.c color/color.h color/color.cpp rect/Rect.cpp rect/Rect.h)
 
 # ADD SDL2 TO THE LINKER
 set(SDL2_DIR F:/Coding/libraries/SDL2)
