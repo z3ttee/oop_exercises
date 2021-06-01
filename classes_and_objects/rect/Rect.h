@@ -10,18 +10,26 @@
 class Rect {
 
 public:
-    Rect(const Color &color, int x, int y, int hB, int hH, int sx = 0, int sy = 0): mRGB(color.getR(), color.getG(), color.getB()), mX(x), mY(y), mHB(hB), mHH(hH), mSX(sx), mSY(sy) {
+    Rect(const Color &color, int x, int y, int width, int height, int sx = 0, int sy = 0): mRGB(color.getR(), color.getG(), color.getB()), mX(x), mY(y), mWidth(width), mHeight(height), mSX(sx), mSY(sy) {
         draw();
+    }
+
+    Rect(const Rect &rect): mRGB(rect.getColor().getR() - 5, rect.getColor().getG() - 5, rect.getColor().getB() - 5), mX(rect.mX), mY(rect.mY), mWidth(rect.mWidth - 3), mHeight(rect.mHeight - 3), mSX(rect.mSX), mSY(rect.mSY) {
+        draw();
+    }
+
+    ~Rect() {
+        undraw();
     }
 
     Color getColor() const { return mRGB; }
 
     int getX() const { return mX; }
     int getY() const { return mY; }
-    int getSX() const { return mSX; }
-    int getSY() const { return mSY; }
-    int getHB() const { return mHB; }
-    int getHH() const { return mHH; }
+    int getSpeedX() const { return mSX; }
+    int getSpeedY() const { return mSY; }
+    int getWidth() const { return mWidth; }
+    int getHeight() const { return mHeight; }
 
     void move(int dx, int dy);
     void draw();
@@ -34,12 +42,13 @@ public:
     void setPos(int x, int y);
 
     bool fly(bool bounce = false);
+    void moveOnTop(const Rect &rect);
 
 private:
     Color mRGB;
     int mX, mY;
     int mSX, mSY;
-    int mHB, mHH;
+    int mWidth, mHeight;
 };
 
 

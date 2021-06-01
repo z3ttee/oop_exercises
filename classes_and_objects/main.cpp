@@ -15,7 +15,8 @@
 #include "include/sdlinterf.h"
 #include "rect/Rect.h"
 
-#define MAX_RECTS 30
+#define MAX_RECTS 40
+#define MILLIS_SLEEP 100
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -24,6 +25,7 @@
 using namespace std;
 
 int randPM(int n, bool negatives = true);
+int randPos(int range, int dist);
 void flyAndTriggerBounceOf(Rect &rect, Rect *rects[], int currentRectIndex, int *livingObjects, bool destroyRect = false);
 
 int main() {
@@ -42,17 +44,84 @@ int main() {
      * ==> Absturz!)
      */
     {
-        for(auto &rect : rects) {
+        /*for(auto &rect : rects) {
             rect = new Rect(Color::random(), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, randPM(30, false), randPM(30, false), randPM(10), randPM(10));
-        }
+        }*/
 
         // This is short for:
         // for(int i = 0; i < MAX_RECTS; ++i) {
         //     rects[i] = new Rect(Color::random(), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 5, 5, 3, 2);
         // }
 
+        // First rect in middle of screen
+        rects[0] = new Rect(Color::random(), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, SDL_X_SIZE / 5, SDL_Y_SIZE / 5);
+
+        // Update window
+        sdlUpdate();
+        sdlMilliSleep(MILLIS_SLEEP);
+
+        // Other elements in array are a copy of the previous one with random positions
+        for(int i = 1; i < MAX_RECTS; ++i) {
+
+            // call "Copy constructor"
+            rects[i] = new Rect(*rects[i - 1]);
+
+            // Set random pos
+            rects[i]->setPos(randPos(SDL_X_SIZE, rects[i]->getWidth()), randPos(SDL_Y_SIZE, rects[i]->getHeight()));
+
+            // Update window
+            sdlUpdate();
+            sdlMilliSleep(MILLIS_SLEEP);
+        }
+
+
+
+        // Set last rect to center of middle of left side of the screen
+        rects[MAX_RECTS - 1]->setPos(SDL_X_SIZE / 4, SDL_Y_SIZE / 2);
+
+        // Update window
+        sdlUpdate();
+        sdlMilliSleep(MILLIS_SLEEP);
+
+        // Count backwards and moveOnTop
+        for(int i = MAX_RECTS - 2; i >= 0; --i) {
+            rects[i]->moveOnTop(*rects[i + 1]);
+
+            // Update window
+            sdlUpdate();
+            sdlMilliSleep(MILLIS_SLEEP);
+        }
+
+
+
+
+        rects[0]->setPos(3 * SDL_X_SIZE / 4, SDL_Y_SIZE / 2);
+
+        // Update window
+        sdlUpdate();
+        sdlMilliSleep(MILLIS_SLEEP);
+
+        // Count forward
+        for(int i = 1; i < MAX_RECTS; ++i) {
+            rects[i]->moveOnTop(*rects[i - 1]);
+
+            // Update window
+            sdlUpdate();
+            sdlMilliSleep(MILLIS_SLEEP);
+        }
+
+
+        // Count backwards and destroy objects
+        for(int i = MAX_RECTS - 1; i >= 0; --i) {
+            delete rects[i];
+
+            // Update window
+            sdlUpdate();
+            sdlMilliSleep(MILLIS_SLEEP);
+        }
+
         // Solange noch Objekte vorhanden sind
-        for(int n = MAX_RECTS; n > 0; ) {
+        /*for(int n = MAX_RECTS; n > 0; ) {
             sdlMilliSleep(16);
 
             for(int i = 0; i < n; ++i) {
@@ -62,25 +131,6 @@ int main() {
             }
 
             sdlUpdate();
-        }
-
-        /*Rect p(Color(255, 255, 255), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 5, 5, 3, 2);
-        Rect p2(Color(255, 200, 100), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 10, 10, 5, 5);
-        Rect p3(Color(255, 20, 200), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 2, 3, -6, -6);
-        Rect p4(Color(255, 110, 100), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 6, 6, 3, 3);
-        Rect p5(Color(255, 230, 140), SDL_X_SIZE / 2, SDL_Y_SIZE / 2, 8, 12, -3, -4);*/
-
-        /*for (;;) {
-          sdlMilliSleep(16);
-
-          flyAndTriggerBounceOf(p);
-          flyAndTriggerBounceOf(p2);
-          flyAndTriggerBounceOf(p3);
-          flyAndTriggerBounceOf(p4);
-          flyAndTriggerBounceOf(p5);
-
-          sdlUpdate();    // die von fly intern ausgeführten Grafik-Operationen
-                          // wirklich auf dem Bildschirm anzeigen
         }*/
     }
 
@@ -98,9 +148,9 @@ void flyAndTriggerBounceOf(Rect &rect, Rect *rects[], int currentRectIndex, int 
     if(didBounceOf) {
         rect.scale(90, 90);
 
-        if(rect.getHH() == 0 || rect.getHB() == 0) {
+        if(rect.getHeight() == 0 || rect.getWidth() == 0) {
             if(destroyRect) {
-                
+
                 delete rects[currentRectIndex];
                 rects[currentRectIndex] = nullptr;
                 --(*livingObjects);
@@ -123,7 +173,7 @@ void flyAndTriggerBounceOf(Rect &rect, Rect *rects[], int currentRectIndex, int 
  * @param n
  * @return int
  */
-int randPM(int n, bool negatives) {
+inline int randPM(int n, bool negatives) {
     int rnd;
 
     do {
@@ -135,6 +185,16 @@ int randPM(int n, bool negatives) {
     } while (rnd == 0);
 
     return rnd;
+}
+
+/**
+ * Generate random position between range and distance
+ * @param range Range
+ * @param dist Distance
+ * @return Random int
+ */
+inline int randPos(int range, int dist) {
+    return dist + rand() % (range - 2 * dist);
 }
 
 #pragma clang diagnostic pop

@@ -7,15 +7,15 @@
 
 void Rect::setSize(int hB, int hH) {
     undraw();
-    mHB = hB;
-    mHH = hH;
+    mWidth = hB;
+    mHeight = hH;
     draw();
 }
 
 void Rect::scale(int scaleX, int scaleY) {
     undraw();
-    mHB = (mHB * scaleX) / 100;
-    mHH = (mHH * scaleY) / 100;
+    mWidth = (mWidth * scaleX) / 100;
+    mHeight = (mHeight * scaleY) / 100;
     draw();
 }
 
@@ -53,8 +53,8 @@ bool Rect::fly(bool bounce) {
     //     und weniger als mSX vom rechten Rand (SDL_X_SIZE) entfernt ist
     // ... oder der Punkt nach links fliegt (mSX < 0)
     //     und weniger als mSX (-mSX weil mSX < 0) vom linken Rand (0) weg ist
-    if (((mSX > 0) && (mX >= SDL_X_SIZE - mSX - mHB)) ||
-        ((mSX < 0) && (mX < -mSX + mHB))) {
+    if (((mSX > 0) && (mX >= SDL_X_SIZE - mSX - mWidth)) ||
+        ((mSX < 0) && (mX < -mSX + mWidth))) {
         // Punkt würde in x-Richtung rausfliegen
         if (bounce) {
             // Vorzeichen der x-Richtung umdrehen ==> Punkt fliegt in Gegenrichtung
@@ -69,8 +69,8 @@ bool Rect::fly(bool bounce) {
     // dieselbe Prüfung für die y-Position des Punktes:
     // fliegt nach unten ==> mindestens mSY Abstand vom unteren Rand (SDL_Y_SIZE)
     // fliegt nach oben ==> mindestens -mSY Abstand vom oberen Rand (0)
-    if (((mSY > 0) && (mY >= SDL_Y_SIZE - mSY - mHH)) ||
-        ((mSY < 0) && (mY < -mSY + mHH))) {
+    if (((mSY > 0) && (mY >= SDL_Y_SIZE - mSY - mHeight)) ||
+        ((mSY < 0) && (mY < -mSY + mHeight))) {
         if (bounce) {
             mSY = -mSY;
             ret = false;
@@ -85,9 +85,16 @@ bool Rect::fly(bool bounce) {
 }
 
 void Rect::draw() {
-    sdlDrawRect(mX, mY, mHB, mHH, mRGB.getR(), mRGB.getG(), mRGB.getB());
+    sdlDrawRect(mX, mY, mWidth, mHeight, mRGB.getR(), mRGB.getG(), mRGB.getB());
 }
 
 void Rect::undraw() const {
-    sdlDrawRect(mX, mY, mHB, mHH, 0, 0, 0);
+    sdlDrawRect(mX, mY, mWidth, mHeight, 0, 0, 0);
+}
+
+void Rect::moveOnTop(const Rect &rect) {
+    this->undraw();
+    this->mX = rect.mX;
+    this->mY = rect.mY;
+    this->draw();
 }
