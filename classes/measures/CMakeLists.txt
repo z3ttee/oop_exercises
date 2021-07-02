@@ -3,4 +3,4 @@ project(measures)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(measures main.cpp messw/messw.cpp messw/messw.h)
+add_executable(measures main.cpp messw/messw.cpp messw/messw.h fraction/fraction.cpp fraction/fraction.h)

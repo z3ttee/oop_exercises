@@ -42,7 +42,7 @@ public:
 
     // Read-only
     // (zum Lesen und Ändern müsste eine Referenz zurückgegeben werden!)
-    double operator[](const int i) const {
+    T operator[](int i) const {
         if(i < 0 || i > this->elements - 1) {
             return 0;
         }
@@ -66,7 +66,7 @@ ostream &operator<<(ostream &outFile, const Messw<T> &messw) {
 }
 
 template <class T>
-Messw<T>::Messw(const Messw<T> &orig): elements(orig.elements), arr(new double[orig.elements]) {
+Messw<T>::Messw(const Messw<T> &orig): elements(orig.elements), arr(new T[orig.elements]) {
     for(int i = 0; i < orig.elements; ++i) {
         this->arr[i] = orig.arr[i];
     }
@@ -105,7 +105,7 @@ Messw<T> &Messw<T>::operator=(const Messw<T> &a) {
         if (this->elements != a.elements) {
             delete[] this->arr;
             this->elements = a.elements;
-            this->arr = new double[this->elements];
+            this->arr = new T[this->elements];
         }
 
         for (int i = 0; i < this->elements; ++i) {
@@ -120,9 +120,9 @@ template <class T>
 Messw<T>::operator T() const {
     if(this->elements == 0) return 0;
 
-    double sum = 0;
+    T sum = 0;
     for(int i = 0; i < this->elements; ++i) {
-        sum += this->arr[i];
+        sum = sum + this->arr[i];
     }
 
     return sum / this->elements;

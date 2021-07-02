@@ -1,7 +1,16 @@
 #include <iostream>
 #include "messw/messw.h"
+#include "fraction/fraction.h"
 
 using namespace std;
+
+istream &operator>>(istream &inFile, Fraction &a){
+    string str;
+    inFile >> str;
+    a = Fraction(str.c_str());
+
+    return inFile;
+}
 
 int main(const int argc, const char *argv[]) {
     if(argc < 2) {
@@ -9,7 +18,7 @@ int main(const int argc, const char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    Messw ges;
+    Messw<Fraction> ges;
 
     for(int i = 1; i < argc; ++i) {
         cout << "================== Lesen... ==================" << endl;
@@ -20,8 +29,9 @@ int main(const int argc, const char *argv[]) {
             continue;
         }
 
-        Messw messw;
-        double a;
+        Messw<Fraction> messw;
+        Fraction a;
+
         while(file >> a) {
             messw = messw + a;
         }
@@ -34,7 +44,7 @@ int main(const int argc, const char *argv[]) {
 
         cout << "Messwerte: " << messw << endl;
         cout << "Gesamtzahl Elemente: " << ~messw << endl;
-        cout << "Mittelwert: " << double(messw) << endl;
+        cout << "Mittelwert: " << Fraction(messw) << endl;
 
         ges = ges + messw;
     }
@@ -42,7 +52,7 @@ int main(const int argc, const char *argv[]) {
     cout << "================== GESAMT ==================" << endl;
     cout << "Erstes Element: " << ges[0] << endl;
     cout << "Letztes Element: " << ges[~ges - 1] << endl;
-    cout << "Mittelwert: " << double(ges) << endl;
+    cout << "Mittelwert: " << Fraction(ges) << endl;
 
     return 0;
 }
